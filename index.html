@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Web App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 15px 30px;
+            margin: 10px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Mi Web App Híbrida</h1>
+        
+        <div class="feature-card">
+            <h2>Controles Nativos</h2>
+            <p>Interactúa con funciones nativas de Flutter desde JavaScript</p>
+            
+            <button class="btn" onclick="requestFullscreen()">
+                📱 Pantalla Completa
+            </button>
+            
+            <button class="btn" onclick="exitFullscreen()">
+                🔙 Salir Pantalla Completa
+            </button>
+            
+            <button class="btn" onclick="requestPermissions()">
+                🔐 Solicitar Permisos
+            </button>
+        </div>
+        
+        <div class="feature-card">
+            <h2>Funciones Web</h2>
+            <button class="btn" onclick="showNotification()">
+                🔔 Mostrar Notificación
+            </button>
+            
+            <button class="btn" onclick="vibrate()">
+                📳 Vibrar (si está disponible)
+            </button>
+        </div>
+        
+        <div class="feature-card">
+            <h2>Estado de la App</h2>
+            <p id="status">Listo para interactuar</p>
+        </div>
+    </div>
+
+    <script>
+        // Función para comunicarse con Flutter
+        function sendToFlutter(message) {
+            if (window.FlutterBridge) {
+                window.FlutterBridge.postMessage(message);
+            } else {
+                console.log('Flutter bridge no disponible:', message);
+                updateStatus('Función solo disponible en la app móvil');
+            }
+        }
+        
+        // Funciones que se comunican con Flutter
+        function requestFullscreen() {
+            sendToFlutter('requestFullscreen');
+            updateStatus('Solicitando pantalla completa...');
+        }
+        
+        function exitFullscreen() {
+            sendToFlutter('exitFullscreen');
+            updateStatus('Saliendo de pantalla completa...');
+        }
+        
+        function requestPermissions() {
+            sendToFlutter('requestPermissions');
+            updateStatus('Solicitando permisos...');
+        }
+        
+        // Funciones web normales
+        function showNotification() {
+            if ('Notification' in window) {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        new Notification('¡Hola desde tu Web App!', {
+                            body: 'Esta notificación viene desde el HTML',
+                            icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="50%" x="50%" text-anchor="middle" dy="0.35em" font-size="90">🚀</text></svg>'
+                        });
+                        updateStatus('Notificación enviada');
+                    }
+                });
+            } else {
+                updateStatus('Notificaciones no soportadas');
+            }
+        }
+        
+        function vibrate() {
+            if ('vibrate' in navigator) {
+                navigator.vibrate([200, 100, 200]);
+                updateStatus('Vibrando...');
+            } else {
+                updateStatus('Vibración no soportada');
+            }
+        }
+        
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+            setTimeout(() => {
+                document.getElementById('status').textContent = 'Listo para interactuar';
+            }, 3000);
+        }
+        
+        // Función que Flutter puede llamar
+        function receiveFromFlutter(data) {
+            console.log('Mensaje de Flutter:', data);
+            updateStatus('Mensaje recibido de Flutter: ' + data);
+        }
+        
+        // Detectar si estamos en la app o en el navegador
+        window.addEventListener('load', function() {
+            if (window.FlutterBridge) {
+                updateStatus('Ejecutándose en la app Flutter');
+            } else {
+                updateStatus('Ejecutándose en navegador web');
+            }
+        });
+    </script>
+</body>
+</html>
